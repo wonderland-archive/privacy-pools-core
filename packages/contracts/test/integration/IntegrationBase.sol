@@ -25,6 +25,8 @@ import {PoseidonT2} from 'poseidon/PoseidonT2.sol';
 import {PoseidonT3} from 'poseidon/PoseidonT3.sol';
 import {PoseidonT4} from 'poseidon/PoseidonT4.sol';
 
+import {BatchRelay} from 'contracts/BatchRelay.sol';
+import {IBatchRelay} from 'interfaces/IBatchRelay.sol';
 import {ICreateX} from 'interfaces/external/ICreateX.sol';
 import {Constants} from 'test/helper/Constants.sol';
 
@@ -258,6 +260,24 @@ contract IntegrationBase is IntegrationUtils {
     _commitment = _withdraw(_RELAYER, _pool, _withdrawal, _params, false);
   }
 
+  function _withdrawThroughRelayerWithBatchData(
+    address _processooor,
+    WithdrawalParams memory _params,
+    IBatchRelay.BatchRelayData memory _data
+  ) internal returns (Commitment memory _commitment, ProofLib.WithdrawProof memory _proof) {
+    // Define pool to deposit to
+    IPrivacyPool _pool = _params.commitment.asset == IERC20(Constants.NATIVE_ASSET)
+      ? IPrivacyPool(address(_ethPool))
+      : IPrivacyPool(address(_daiPool));
+
+    // Build `Withdrawal` object for relayed withdrawal
+    IPrivacyPool.Withdrawal memory _withdrawal =
+      IPrivacyPool.Withdrawal({processooor: _processooor, data: abi.encode(_data)});
+
+    // Withdraw
+    (_commitment, _proof) = _withdrawThroughBatchContract(_pool, _withdrawal, _params);
+  }
+
   function _withdraw(
     address _caller,
     IPrivacyPool _pool,
@@ -272,7 +292,6 @@ contract IntegrationBase is IntegrationUtils {
 
     // Compute context hash
     uint256 _context = uint256(keccak256(abi.encode(_withdrawal, _pool.SCOPE()))) % SNARK_SCALAR_FIELD;
-
     // Compute new commitment properties
     _commitment.value = _params.commitment.value - _params.withdrawnAmount;
     _commitment.label = _params.commitment.label;
@@ -336,6 +355,42 @@ contract IntegrationBase is IntegrationUtils {
         'Pool balance mismatch'
       );
     }
+  }
+
+  function _withdrawThroughBatchContract(
+    IPrivacyPool _pool,
+    IPrivacyPool.Withdrawal memory _withdrawal,
+    WithdrawalParams memory _params
+  ) internal returns (Commitment memory _commitment, ProofLib.WithdrawProof memory _proof) {
+    // Compute context hash
+    uint256 _context = uint256(keccak256(abi.encode(_withdrawal, _pool.SCOPE()))) % SNARK_SCALAR_FIELD;
+
+    // Compute new commitment properties
+    _commitment.value = _params.commitment.value - _params.withdrawnAmount;
+    _commitment.label = _params.commitment.label;
+    _commitment.nullifier = _genSecretBySeed(_params.newNullifier);
+    _commitment.secret = _genSecretBySeed(_params.newSecret);
+    _commitment.precommitment = _hashPrecommitment(_commitment.nullifier, _commitment.secret);
+    _commitment.hash = _hashCommitment(_commitment.value, _commitment.label, _commitment.precommitment);
+    _commitment.asset = _params.commitment.asset;
+
+    // Generate withdrawal proof
+    _proof = _generateWithdrawalProof(
+      WithdrawalProofParams({
+        existingCommitment: _params.commitment.hash,
+        withdrawnValue: _params.withdrawnAmount,
+        context: _context,
+        label: _params.commitment.label,
+        existingValue: _params.commitment.value,
+        existingNullifier: _params.commitment.nullifier,
+        existingSecret: _params.commitment.secret,
+        newNullifier: _commitment.nullifier,
+        newSecret: _commitment.secret
+      })
+    );
+
+    // Insert new commitment in mirrored state tree
+    _insertIntoShadowMerkleTree(_commitment.hash);
   }
 
   /*///////////////////////////////////////////////////////////////
