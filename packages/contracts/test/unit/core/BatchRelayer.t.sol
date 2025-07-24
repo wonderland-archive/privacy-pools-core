@@ -2,6 +2,7 @@
 pragma solidity 0.8.28;
 
 import {IERC20} from '@oz/interfaces/IERC20.sol';
+import {ERC20} from '@oz/token/ERC20/ERC20.sol';
 import {SafeERC20} from '@oz/token/ERC20/utils/SafeERC20.sol';
 import {BatchRelayer} from 'contracts/BatchRelayer.sol';
 import {Constants} from 'contracts/lib/Constants.sol';
@@ -52,17 +53,29 @@ contract ForTest_ReceiveRevert {
   }
 }
 
+contract ERC20ForTest is ERC20 {
+  constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {}
+
+  function mint(address _to, uint256 _amount) external {
+    _mint(_to, _amount);
+  }
+}
+
 contract UnitBatchRelayer is Test {
   BatchRelayer public batchRelayer;
   uint256 public constant MAX_RELAY_FEE_BPS = 1000; // 10%
   IPrivacyPool public privacyPoolNative;
+  IPrivacyPool public privacyPoolERC20;
   BatchRelayerForTest public batchRelayerForTest;
   ForTest_ReceiveRevert public forTest_ReceiveRevert;
+  ERC20ForTest public erc20ForTest;
 
   function setUp() external {
     batchRelayer = new BatchRelayer(MAX_RELAY_FEE_BPS);
+    erc20ForTest = new ERC20ForTest('ERC20ForTest', 'ERC20');
 
     privacyPoolNative = IPrivacyPool(address(new PrivacyPoolForTest(IERC20(Constants.NATIVE_ASSET))));
+    privacyPoolERC20 = IPrivacyPool(address(new PrivacyPoolForTest(erc20ForTest)));
     batchRelayerForTest = new BatchRelayerForTest(MAX_RELAY_FEE_BPS);
     forTest_ReceiveRevert = new ForTest_ReceiveRevert();
   }
@@ -85,6 +98,8 @@ contract UnitBatchRelayer is Test {
     assumeNotPrecompile(_address);
     vm.assume(_address != address(batchRelayer));
     vm.assume(_address != address(privacyPoolNative));
+    vm.assume(_address != address(batchRelayerForTest));
+    vm.assume(_address != address(forTest_ReceiveRevert));
   }
 
   function _mockAndExpect(address _contract, bytes memory _call, bytes memory _return) internal {
@@ -146,7 +161,7 @@ contract UnitBatchRelayer is Test {
     assertEq(batchRelayer.MAX_RELAY_FEE_BPS(), _maxRelayFeeBPS);
   }
 
-  function test_BatchRelayWhenCallingAnNativeAssetPool(HappyPath memory _happyPath) external happyPath(_happyPath) {
+  function test_BatchRelayWhenCallingANativeAssetPool(HappyPath memory _happyPath) external happyPath(_happyPath) {
     IPrivacyPool.Withdrawal memory _withdrawal = IPrivacyPool.Withdrawal({
       processooor: address(batchRelayer),
       data: abi.encode(
@@ -189,6 +204,55 @@ contract UnitBatchRelayer is Test {
 
     vm.prank(_happyPath.relayer);
     batchRelayer.batchRelay(privacyPoolNative, _withdrawal, _proofs);
+  }
+
+  function test_BatchRelayWhenCallingANon_nativeAssetPool(HappyPath memory _happyPath) external happyPath(_happyPath) {
+    IPrivacyPool.Withdrawal memory _withdrawal = IPrivacyPool.Withdrawal({
+      processooor: address(batchRelayer),
+      data: abi.encode(
+        IBatchRelayer.BatchRelayData({
+          recipient: _happyPath.recipient,
+          feeRecipient: _happyPath.feeRecipient,
+          relayFeeBPS: _happyPath.relayFeeBPS,
+          batchSize: _happyPath.batchSize
+        })
+      )
+    });
+    ProofLib.WithdrawProof[] memory _proofs = new ProofLib.WithdrawProof[](_happyPath.batchSize);
+    for (uint256 i = 0; i < _happyPath.batchSize; i++) {
+      _proofs[i] = _createFakeProof(_happyPath.withdrawnAmounts[i]);
+    }
+    erc20ForTest.mint(address(privacyPoolERC20), _happyPath.totalAmount);
+
+    // It gets the asset from the pool
+    vm.expectCall(address(privacyPoolERC20), abi.encodeWithSelector(IState.ASSET.selector));
+
+    // It call withdraw() on the pool for each proof
+    for (uint256 i = 0; i < _happyPath.batchSize; i++) {
+      vm.expectCall(
+        address(privacyPoolERC20), abi.encodeWithSelector(IPrivacyPool.withdraw.selector, _withdrawal, _proofs[i])
+      );
+    }
+
+    uint256 _fee = _happyPath.totalAmount * _happyPath.relayFeeBPS / 10_000;
+    uint256 _afterFees = _happyPath.totalAmount - _fee;
+
+    // It emits an event
+    vm.expectEmit();
+    emit IBatchRelayer.BatchRelayed(privacyPoolERC20, _happyPath.recipient, _afterFees, _fee);
+
+    // It transfers the assets to the recipient
+    vm.expectCall(
+      address(erc20ForTest), abi.encodeWithSelector(IERC20.transfer.selector, _happyPath.recipient, _afterFees)
+    );
+
+    // It transfers the fees to the fee recipient
+    vm.expectCall(
+      address(erc20ForTest), abi.encodeWithSelector(IERC20.transfer.selector, _happyPath.feeRecipient, _fee)
+    );
+
+    vm.prank(_happyPath.relayer);
+    batchRelayer.batchRelay(privacyPoolERC20, _withdrawal, _proofs);
   }
 
   function test_BatchRelayWhenProofsArrayIsEmpty() external {
