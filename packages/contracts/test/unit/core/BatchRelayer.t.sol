@@ -86,7 +86,7 @@ contract UnitBatchRelayer is Test {
     vm.assume(_address != address(batchRelayer));
     vm.assume(_address != address(privacyPoolNative));
     vm.assume(_address != address(batchRelayerForTest));
-    vm.assume(_address != address(forTest_ReceiveRevert));
+    vm.assume(_address != address(receiveRevertForTest));
   }
 
   function _mockAndExpect(address _contract, bytes memory _call, bytes memory _return) internal {
