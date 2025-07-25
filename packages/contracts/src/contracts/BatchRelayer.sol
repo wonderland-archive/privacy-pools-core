@@ -82,11 +82,7 @@ contract BatchRelayer is IBatchRelayer {
    * @return _balance The asset balance
    */
   function _assetBalance(IERC20 _asset) internal view returns (uint256 _balance) {
-    if (_asset == IERC20(Constants.NATIVE_ASSET)) {
-      _balance = address(this).balance;
-    } else {
-      _balance = _asset.balanceOf(address(this));
-    }
+    _balance = address(this).balance;
   }
 
   /**
