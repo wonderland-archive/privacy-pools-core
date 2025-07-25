@@ -45,7 +45,7 @@ contract BatchRelayerForTest is BatchRelayer {
   }
 }
 
-contract ForTest_ReceiveRevert {
+contract ReceiveRevertForTest {
   // This contract always revert when sending eth
   receive() external payable {
     revert('Revert');
@@ -57,14 +57,14 @@ contract UnitBatchRelayer is Test {
   uint256 public constant MAX_RELAY_FEE_BPS = 1000; // 10%
   IPrivacyPool public privacyPoolNative;
   BatchRelayerForTest public batchRelayerForTest;
-  ForTest_ReceiveRevert public forTest_ReceiveRevert;
+  ReceiveRevertForTest public receiveRevertForTest;
 
   function setUp() external {
     batchRelayer = new BatchRelayer(MAX_RELAY_FEE_BPS);
 
     privacyPoolNative = IPrivacyPool(address(new PrivacyPoolForTest(IERC20(Constants.NATIVE_ASSET))));
     batchRelayerForTest = new BatchRelayerForTest(MAX_RELAY_FEE_BPS);
-    forTest_ReceiveRevert = new ForTest_ReceiveRevert();
+    receiveRevertForTest = new ReceiveRevertForTest();
   }
 
   receive() external payable {}
@@ -333,12 +333,13 @@ contract UnitBatchRelayer is Test {
 
     // It reverts with NativeAssetTransferFailed
     vm.expectRevert(IBatchRelayer.NativeAssetTransferFailed.selector);
-    batchRelayerForTest.forTest_transfer(IERC20(Constants.NATIVE_ASSET), address(forTest_ReceiveRevert), _amount);
+    batchRelayerForTest.forTest_transfer(IERC20(Constants.NATIVE_ASSET), address(receiveRevertForTest), _amount);
   }
 
   function test__transferWhenTransferSucceeds(address _recipient, uint256 _amount) external whenAssetIsNative {
     _assumeFuzzable(_recipient);
     vm.assume(_recipient != address(0));
+    vm.assume(_recipient != address(receiveRevertForTest));
     vm.deal(address(batchRelayerForTest), _amount);
 
     // It transfers the amount to the recipient
@@ -348,6 +349,7 @@ contract UnitBatchRelayer is Test {
   }
 
   function test__transferWhenAssetIsNotNative(IERC20 _asset, address _recipient, uint256 _amount) external {
+    vm.assume(address(_asset) != Constants.NATIVE_ASSET);
     _assumeFuzzable(address(_asset));
     _assumeFuzzable(_recipient);
 
