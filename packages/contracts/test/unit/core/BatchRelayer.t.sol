@@ -56,7 +56,6 @@ contract UnitBatchRelayer is Test {
   BatchRelayer public batchRelayer;
   uint256 public constant MAX_RELAY_FEE_BPS = 1000; // 10%
   IPrivacyPool public privacyPoolNative;
-  IPrivacyPool public privacyPoolERC20;
   BatchRelayerForTest public batchRelayerForTest;
   ForTest_ReceiveRevert public forTest_ReceiveRevert;
 
@@ -201,6 +200,7 @@ contract UnitBatchRelayer is Test {
   ) external happyPath(_happyPath) {
     _assumeFuzzable(address(_pool));
     _assumeFuzzable(address(_asset));
+    vm.assume(address(_asset) != Constants.NATIVE_ASSET);
 
     IPrivacyPool.Withdrawal memory _withdrawal = IPrivacyPool.Withdrawal({
       processooor: address(batchRelayer),
