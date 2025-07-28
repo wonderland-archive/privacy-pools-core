@@ -3,6 +3,7 @@ pragma solidity 0.8.28;
 
 import {IntegrationBase} from './IntegrationBase.sol';
 import {IBatchRelayer} from 'interfaces/IBatchRelayer.sol';
+import {IPrivacyPool} from 'interfaces/IPrivacyPool.sol';
 import {InternalLeanIMT, LeanIMTData} from 'lean-imt/InternalLeanIMT.sol';
 
 contract IntegrationBatchRelayerFailCases is IntegrationBase {
@@ -56,7 +57,7 @@ contract IntegrationBatchRelayerFailCases is IntegrationBase {
       address(_batchRelayer),
       _params,
       IBatchRelayer.BatchRelayData({recipient: _BOB, feeRecipient: _RELAYER, relayFeeBPS: FIVE_PERCENT, batchSize: 1}),
-      NONE
+      IBatchRelayer.InvalidBatchSize.selector
     );
   }
 
@@ -65,6 +66,21 @@ contract IntegrationBatchRelayerFailCases is IntegrationBase {
   }
 
   function test_batchRelayWrongProcessooor() public {
-    vm.skip(true);
+    // Bob withdraws the total amount of Alice's commitment, but with wrong processooor
+    WithdrawalParams[] memory _params = new WithdrawalParams[](1);
+    _params[0] = WithdrawalParams({
+      withdrawnAmount: _commitment1.value,
+      newNullifier: 'nullifier_1a',
+      newSecret: 'secret_1a',
+      recipient: _BOB,
+      commitment: _commitment1,
+      revertReason: NONE
+    });
+    _withdrawThroughBatchRelayer(
+      address(_entrypoint),
+      _params,
+      IBatchRelayer.BatchRelayData({recipient: _BOB, feeRecipient: _RELAYER, relayFeeBPS: FIVE_PERCENT, batchSize: 1}),
+      IPrivacyPool.InvalidProcessooor.selector
+    );
   }
 }
