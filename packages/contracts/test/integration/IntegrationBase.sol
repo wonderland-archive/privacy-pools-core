@@ -157,6 +157,32 @@ contract IntegrationBase is IntegrationUtils, DeployBatchRelayer {
     vm.stopPrank();
   }
 
+  function _computeNewCommitmentAndProof(uint256 _context, WithdrawalParams memory _params) internal returns (Commitment memory _commitment, ProofLib.WithdrawProof memory _proof) {
+    // Compute new commitment properties
+    _commitment.value = _params.commitment.value - _params.withdrawnAmount;
+    _commitment.label = _params.commitment.label;
+    _commitment.nullifier = _genSecretBySeed(_params.newNullifier);
+    _commitment.secret = _genSecretBySeed(_params.newSecret);
+    _commitment.precommitment = _hashPrecommitment(_commitment.nullifier, _commitment.secret);
+    _commitment.hash = _hashCommitment(_commitment.value, _commitment.label, _commitment.precommitment);
+    _commitment.asset = _params.commitment.asset;
+
+    // Generate withdrawal proof
+    _proof = _generateWithdrawalProof(
+      WithdrawalProofParams({
+        existingCommitment: _params.commitment.hash,
+        withdrawnValue: _params.withdrawnAmount,
+        context: _context,
+        label: _params.commitment.label,
+        existingValue: _params.commitment.value,
+        existingNullifier: _params.commitment.nullifier,
+        existingSecret: _params.commitment.secret,
+        newNullifier: _commitment.nullifier,
+        newSecret: _commitment.secret
+      })
+    );
+  }
+
   /*///////////////////////////////////////////////////////////////
                            DEPOSIT 
   //////////////////////////////////////////////////////////////*/
@@ -301,28 +327,8 @@ contract IntegrationBase is IntegrationUtils, DeployBatchRelayer {
     uint256 _context = uint256(keccak256(abi.encode(_withdrawal, _pool.SCOPE()))) % SNARK_SCALAR_FIELD;
 
     // Compute new commitment properties
-    _commitment.value = _params.commitment.value - _params.withdrawnAmount;
-    _commitment.label = _params.commitment.label;
-    _commitment.nullifier = _genSecretBySeed(_params.newNullifier);
-    _commitment.secret = _genSecretBySeed(_params.newSecret);
-    _commitment.precommitment = _hashPrecommitment(_commitment.nullifier, _commitment.secret);
-    _commitment.hash = _hashCommitment(_commitment.value, _commitment.label, _commitment.precommitment);
-    _commitment.asset = _params.commitment.asset;
-
-    // Generate withdrawal proof
-    ProofLib.WithdrawProof memory _proof = _generateWithdrawalProof(
-      WithdrawalProofParams({
-        existingCommitment: _params.commitment.hash,
-        withdrawnValue: _params.withdrawnAmount,
-        context: _context,
-        label: _params.commitment.label,
-        existingValue: _params.commitment.value,
-        existingNullifier: _params.commitment.nullifier,
-        existingSecret: _params.commitment.secret,
-        newNullifier: _commitment.nullifier,
-        newSecret: _commitment.secret
-      })
-    );
+    ProofLib.WithdrawProof memory _proof;
+    (_commitment, _proof) = _computeNewCommitmentAndProof(_context, _params);
 
     uint256 _scope = _pool.SCOPE();
 
@@ -389,31 +395,7 @@ contract IntegrationBase is IntegrationUtils, DeployBatchRelayer {
     ProofLib.WithdrawProof[] memory _proofs = new ProofLib.WithdrawProof[](_params.length);
 
     for (uint256 i = 0; i < _params.length; i++) {
-      Commitment memory _commitment;
-
-      // Compute new commitment properties
-      _commitment.value = _params[i].commitment.value - _params[i].withdrawnAmount;
-      _commitment.label = _params[i].commitment.label;
-      _commitment.nullifier = _genSecretBySeed(_params[i].newNullifier);
-      _commitment.secret = _genSecretBySeed(_params[i].newSecret);
-      _commitment.precommitment = _hashPrecommitment(_commitment.nullifier, _commitment.secret);
-      _commitment.hash = _hashCommitment(_commitment.value, _commitment.label, _commitment.precommitment);
-      _commitment.asset = _params[i].commitment.asset;
-
-      // Generate withdrawal proof
-      ProofLib.WithdrawProof memory _proof = _generateWithdrawalProof(
-        WithdrawalProofParams({
-          existingCommitment: _params[i].commitment.hash,
-          withdrawnValue: _params[i].withdrawnAmount,
-          context: _context,
-          label: _params[i].commitment.label,
-          existingValue: _params[i].commitment.value,
-          existingNullifier: _params[i].commitment.nullifier,
-          existingSecret: _params[i].commitment.secret,
-          newNullifier: _commitment.nullifier,
-          newSecret: _commitment.secret
-        })
-      );
+      (Commitment memory _commitment, ProofLib.WithdrawProof memory _proof) = _computeNewCommitmentAndProof(_context, _params[i]);
 
       _commitments[i] = _commitment;
       _proofs[i] = _proof;
