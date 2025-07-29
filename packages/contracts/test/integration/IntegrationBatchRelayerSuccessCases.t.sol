@@ -107,6 +107,8 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
 
   /// @dev Relayer will receive a minimum of 1 wei in fees
   function test_batchRelayZeroFees() public {
+    uint256 _relayerBalanceBefore = _RELAYER.balance;
+
     // Bob withdraws a very small amount of the commitment, not enouth to pay for the relayer fee
     WithdrawalParams[] memory _params = new WithdrawalParams[](1);
     _params[0] = WithdrawalParams({
@@ -122,6 +124,8 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
       IBatchRelayer.BatchRelayData({recipient: _BOB, feeRecipient: _RELAYER, relayFeeBPS: FIVE_PERCENT, batchSize: 1}),
       NONE
     );
+
+    assertEq(_RELAYER.balance, _relayerBalanceBefore + 1);
   }
 
   function test_batchRelaySingleProof() public {
