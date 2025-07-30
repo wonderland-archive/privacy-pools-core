@@ -82,59 +82,29 @@ contract IntegrationBatchRelayerFailCases is IntegrationBase {
     vm.prank(_POSTMAN);
     _entrypoint.updateRoot(_shadowASPMerkleTree._root(), 'ipfs_cid_ipfs_cid_ipfs_cid_ipfs_cid_ipfs_cid_ipfs_cid');
 
-    Commitment memory _newCommitment1;
-    Commitment memory _newCommitment3;
-
     // Generate proof from alice commitment
-    _newCommitment1.value = _commitment1.value;
-    _newCommitment1.label = _commitment1.label;
-    _newCommitment1.nullifier = _genSecretBySeed('nullifier_1a');
-    _newCommitment1.secret = _genSecretBySeed('secret_1a');
-    _newCommitment1.precommitment = _hashPrecommitment(_commitment1.nullifier, _commitment1.secret);
-    _newCommitment1.hash = _hashCommitment(_newCommitment1.value, _newCommitment1.label, _newCommitment1.precommitment);
-    _newCommitment1.asset = _commitment1.asset;
+    (, _proofs[0]) = _computeNewCommitmentAndProof(
+      uint256(keccak256(abi.encode(_bobWithdrawal, _ethPool.SCOPE()))) % SNARK_SCALAR_FIELD,
+      WithdrawalParams({
+        withdrawnAmount: 0,
+        newNullifier: 'nullifier_1a',
+        newSecret: 'secret_1a',
+        recipient: _BOB,
+        commitment: _commitment1
+      })
+    );
 
     // Generate proof from carl commitment
-    _newCommitment3.value = _commitment3.value;
-    _newCommitment3.label = _commitment3.label;
-    _newCommitment3.nullifier = _genSecretBySeed('nullifier_3a');
-    _newCommitment3.secret = _genSecretBySeed('secret_3a');
-    _newCommitment3.precommitment = _hashPrecommitment(_commitment3.nullifier, _commitment3.secret);
-    _newCommitment3.hash = _hashCommitment(_newCommitment3.value, _newCommitment3.label, _newCommitment3.precommitment);
-    _newCommitment3.asset = _commitment3.asset;
-
-    // Generate withdrawal proof
-    ProofLib.WithdrawProof memory _proof1 = _generateWithdrawalProof(
-      WithdrawalProofParams({
-        existingCommitment: _commitment1.hash,
-        withdrawnValue: 0,
-        context: uint256(keccak256(abi.encode(_bobWithdrawal, _ethPool.SCOPE()))) % SNARK_SCALAR_FIELD,
-        label: _commitment1.label,
-        existingValue: _commitment1.value,
-        existingNullifier: _commitment1.nullifier,
-        existingSecret: _commitment1.secret,
-        newNullifier: _newCommitment1.nullifier,
-        newSecret: _newCommitment1.secret
+    (, _proofs[1]) = _computeNewCommitmentAndProof(
+      uint256(keccak256(abi.encode(_carlWithdrawal, _ethPool.SCOPE()))) % SNARK_SCALAR_FIELD,
+      WithdrawalParams({
+        withdrawnAmount: 0,
+        newNullifier: 'nullifier_3a',
+        newSecret: 'secret_3a',
+        recipient: _CARL,
+        commitment: _commitment3
       })
     );
-
-    // Generate withdrawal proof
-    ProofLib.WithdrawProof memory _proof2 = _generateWithdrawalProof(
-      WithdrawalProofParams({
-        existingCommitment: _commitment3.hash,
-        withdrawnValue: 0,
-        context: uint256(keccak256(abi.encode(_carlWithdrawal, _ethPool.SCOPE()))) % SNARK_SCALAR_FIELD,
-        label: _commitment3.label,
-        existingValue: _commitment3.value,
-        existingNullifier: _commitment3.nullifier,
-        existingSecret: _commitment3.secret,
-        newNullifier: _newCommitment3.nullifier,
-        newSecret: _newCommitment3.secret
-      })
-    );
-
-    _proofs[0] = _proof1;
-    _proofs[1] = _proof2;
 
     // Call batch relayer with both proofs (both have different context)
     vm.prank(_RELAYER);
