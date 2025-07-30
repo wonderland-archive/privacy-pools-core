@@ -387,4 +387,19 @@ contract UnitBatchRelayer is Test {
 
     batchRelayerForTest.forTest_transfer(_asset, _recipient, _amount);
   }
+
+  function test__assetBalanceWhenAssetIsNative() external {
+    // It returns the contract balance
+    vm.skip(true);
+  }
+
+  function test__assetBalanceWhenAssetIsNotNative() external {
+    // It returns the asset balance of the contract
+    vm.skip(true);
+  }
+
+  function test__deductFeeWhenCalled() external {
+    // It returns the correct amount
+    vm.skip(true);
+  }
 }
