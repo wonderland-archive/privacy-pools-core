@@ -38,16 +38,14 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
       newNullifier: 'nullifier_1a',
       newSecret: 'secret_1a',
       recipient: _BOB,
-      commitment: _commitment1,
-      revertReason: NONE
+      commitment: _commitment1
     });
     _params[1] = WithdrawalParams({
       withdrawnAmount: _commitment2.value,
       newNullifier: 'nullifier_2a',
       newSecret: 'secret_2a',
       recipient: _BOB,
-      commitment: _commitment2,
-      revertReason: NONE
+      commitment: _commitment2
     });
     _withdrawThroughBatchRelayer(
       address(_batchRelayer),
@@ -65,16 +63,14 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
       newNullifier: 'nullifier_1a',
       newSecret: 'secret_1a',
       recipient: _BOB,
-      commitment: _commitment1,
-      revertReason: NONE
+      commitment: _commitment1
     });
     _params[1] = WithdrawalParams({
       withdrawnAmount: _commitment2.value,
       newNullifier: 'nullifier_2a',
       newSecret: 'secret_2a',
       recipient: _BOB,
-      commitment: _commitment2,
-      revertReason: NONE
+      commitment: _commitment2
     });
     _withdrawThroughBatchRelayer(
       address(_batchRelayer),
@@ -92,16 +88,14 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
       newNullifier: 'nullifier_1a',
       newSecret: 'secret_1a',
       recipient: _BOB,
-      commitment: _commitment1,
-      revertReason: NONE
+      commitment: _commitment1
     });
     _params[1] = WithdrawalParams({
       withdrawnAmount: 0,
       newNullifier: 'nullifier_2a',
       newSecret: 'secret_2a',
       recipient: _BOB,
-      commitment: _commitment2,
-      revertReason: NONE
+      commitment: _commitment2
     });
     _withdrawThroughBatchRelayer(
       address(_batchRelayer),
@@ -113,6 +107,8 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
 
   /// @dev Relayer will receive a minimum of 1 wei in fees
   function test_batchRelayZeroFees() public {
+    uint256 _relayerBalanceBefore = _RELAYER.balance;
+
     // Bob withdraws a very small amount of the commitment, not enouth to pay for the relayer fee
     WithdrawalParams[] memory _params = new WithdrawalParams[](1);
     _params[0] = WithdrawalParams({
@@ -120,8 +116,7 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
       newNullifier: 'nullifier_1a',
       newSecret: 'secret_1a',
       recipient: _BOB,
-      commitment: _commitment1,
-      revertReason: NONE
+      commitment: _commitment1
     });
     _withdrawThroughBatchRelayer(
       address(_batchRelayer),
@@ -129,6 +124,8 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
       IBatchRelayer.BatchRelayData({recipient: _BOB, feeRecipient: _RELAYER, relayFeeBPS: FIVE_PERCENT, batchSize: 1}),
       NONE
     );
+
+    assertEq(_RELAYER.balance, _relayerBalanceBefore + 1);
   }
 
   function test_batchRelaySingleProof() public {
@@ -139,8 +136,7 @@ contract IntegrationBatchRelayerSuccessCases is IntegrationBase {
       newNullifier: 'nullifier_1a',
       newSecret: 'secret_1a',
       recipient: _BOB,
-      commitment: _commitment1,
-      revertReason: NONE
+      commitment: _commitment1
     });
     _withdrawThroughBatchRelayer(
       address(_batchRelayer),
