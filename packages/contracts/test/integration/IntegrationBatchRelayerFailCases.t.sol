@@ -43,16 +43,14 @@ contract IntegrationBatchRelayerFailCases is IntegrationBase {
       newNullifier: 'nullifier_1a',
       newSecret: 'secret_1a',
       recipient: _BOB,
-      commitment: _commitment1,
-      revertReason: NONE
+      commitment: _commitment1
     });
     _params[1] = WithdrawalParams({
       withdrawnAmount: _commitment2.value,
       newNullifier: 'nullifier_2a',
       newSecret: 'secret_2a',
       recipient: _CARL,
-      commitment: _commitment2,
-      revertReason: NONE
+      commitment: _commitment2
     });
     _withdrawThroughBatchRelayer(
       address(_batchRelayer),
@@ -152,8 +150,7 @@ contract IntegrationBatchRelayerFailCases is IntegrationBase {
       newNullifier: 'nullifier_1a',
       newSecret: 'secret_1a',
       recipient: _BOB,
-      commitment: _commitment1,
-      revertReason: NONE
+      commitment: _commitment1
     });
     _withdrawThroughBatchRelayer(
       address(_entrypoint),
