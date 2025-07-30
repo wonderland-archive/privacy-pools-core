@@ -405,6 +405,7 @@ contract UnitBatchRelayer is Test {
 
   function test__assetBalanceWhenAssetIsNotNative(IERC20 _asset, uint256 _balance) external {
     _assumeFuzzable(address(_asset));
+    vm.assume(address(_asset) != Constants.NATIVE_ASSET);
 
     _mockAndExpect(
       address(_asset),
