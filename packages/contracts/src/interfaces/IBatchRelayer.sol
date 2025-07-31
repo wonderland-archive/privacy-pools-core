@@ -11,7 +11,7 @@ interface IBatchRelayer {
 
   /**
    * @notice Struct for the batch relay data
-   * @param recipient The inteded receiver of funds
+   * @param recipient The intended receiver of funds
    * @param feeRecipient The fee receiver. Chosen by the relayer, may be the same address initiating the transaction.
    * @param relayFeeBPS The fee paid to `feeRecipient`, specified in basis points
    * @param batchSize The number of withdrawals expected
