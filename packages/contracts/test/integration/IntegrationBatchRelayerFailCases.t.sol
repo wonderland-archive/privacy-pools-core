@@ -81,7 +81,7 @@ contract IntegrationBatchRelayerFailCases is IntegrationBase {
     vm.prank(_POSTMAN);
     _entrypoint.updateRoot(_shadowASPMerkleTree._root(), 'ipfs_cid_ipfs_cid_ipfs_cid_ipfs_cid_ipfs_cid_ipfs_cid');
 
-    // Generate proof from bob's commitment
+    // Generate proof from alice's commitment
     (, _proofs[0]) = _computeNewCommitmentAndProof(
       uint256(keccak256(abi.encode(_bobWithdrawal, _ethPool.SCOPE()))) % SNARK_SCALAR_FIELD,
       WithdrawalParams({
