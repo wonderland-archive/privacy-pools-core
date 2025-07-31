@@ -36,7 +36,11 @@ interface IBatchRelayer {
    * @param _fee The fee that was deducted
    */
   event BatchRelayed(
-    IPrivacyPool indexed _pool, address _recipient, address _feeRecipient, uint256 _amountAfterFees, uint256 _fee
+    IPrivacyPool indexed _pool,
+    address indexed _recipient,
+    address indexed _feeRecipient,
+    uint256 _amountAfterFees,
+    uint256 _fee
   );
 
   /*///////////////////////////////////////////////////////////////
