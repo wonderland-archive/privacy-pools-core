@@ -53,7 +53,6 @@ contract IntegrationBatchRelayerFailCases is IntegrationBase {
       commitment: _commitment2
     });
     _withdrawThroughBatchRelayer(
-      address(_batchRelayer),
       _params,
       IBatchRelayer.BatchRelayData({recipient: _BOB, feeRecipient: _RELAYER, relayFeeBPS: FIVE_PERCENT, batchSize: 1}),
       IBatchRelayer.InvalidBatchSize.selector

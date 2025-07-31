@@ -301,6 +301,14 @@ contract IntegrationBase is IntegrationUtils {
   }
 
   function _withdrawThroughBatchRelayer(
+    WithdrawalParams[] memory _params,
+    IBatchRelayer.BatchRelayData memory _data,
+    bytes4 _revertReason
+  ) internal returns (Commitment[] memory _commitments) {
+    _withdrawThroughBatchRelayer(address(_batchRelayer), _params, _data, _revertReason);
+  }
+
+  function _withdrawThroughBatchRelayer(
     address _processooor,
     WithdrawalParams[] memory _params,
     IBatchRelayer.BatchRelayData memory _data,
