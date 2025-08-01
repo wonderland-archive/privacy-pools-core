@@ -44,10 +44,6 @@ contract BatchRelayerForTest is BatchRelayer {
     _transfer(_asset, _recipient, _amount);
   }
 
-  function forTest_assetBalance(IERC20 _asset) external view returns (uint256) {
-    return _assetBalance(_asset);
-  }
-
   function forTest_deductFee(uint256 _amount, uint256 _relayFeeBPS) external view returns (uint256) {
     return _deductFee(_amount, _relayFeeBPS);
   }
