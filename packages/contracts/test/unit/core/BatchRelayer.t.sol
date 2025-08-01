@@ -224,10 +224,6 @@ contract UnitBatchRelayer is Test {
       _proofs[i] = _createFakeProof(_happyPath.withdrawnAmounts[i]);
     }
 
-    _mockAndExpect(
-      address(_asset), abi.encodeWithSelector(IERC20.balanceOf.selector, address(batchRelayer)), abi.encode(0)
-    );
-
     // It gets the asset from the pool
     _mockAndExpect(address(_pool), abi.encodeWithSelector(IState.ASSET.selector), abi.encode(address(_asset)));
 
@@ -248,10 +244,16 @@ contract UnitBatchRelayer is Test {
     emit IBatchRelayer.BatchRelayed(_pool, _happyPath.recipient, _happyPath.feeRecipient, _afterFees, _fee);
 
     // It transfers the assets to the recipient
-    vm.expectCall(address(_asset), abi.encodeWithSelector(IERC20.transfer.selector, _happyPath.recipient, _afterFees));
+    _mockAndExpect(
+      address(_asset),
+      abi.encodeWithSelector(IERC20.transfer.selector, _happyPath.recipient, _afterFees),
+      abi.encode(true)
+    );
 
     // It transfers the fees to the fee recipient
-    vm.expectCall(address(_asset), abi.encodeWithSelector(IERC20.transfer.selector, _happyPath.feeRecipient, _fee));
+    _mockAndExpect(
+      address(_asset), abi.encodeWithSelector(IERC20.transfer.selector, _happyPath.feeRecipient, _fee), abi.encode(true)
+    );
 
     vm.prank(_happyPath.relayer);
     batchRelayer.batchRelay(_pool, _withdrawal, _proofs);
