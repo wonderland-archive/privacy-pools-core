@@ -390,25 +390,6 @@ contract UnitBatchRelayer is Test {
     batchRelayer.forTest_transfer(_asset, _recipient, _amount);
   }
 
-  function test__assetBalanceWhenAssetIsNative(uint256 _balance) external {
-    vm.deal(address(batchRelayer), _balance);
-
-    // It returns the contract balance
-    assertEq(batchRelayer.forTest_assetBalance(IERC20(Constants.NATIVE_ASSET)), _balance);
-  }
-
-  function test__assetBalanceWhenAssetIsNotNative(IERC20 _asset, uint256 _balance) external {
-    _assumeFuzzable(address(_asset));
-    vm.assume(address(_asset) != Constants.NATIVE_ASSET);
-
-    _mockAndExpect(
-      address(_asset), abi.encodeWithSelector(IERC20.balanceOf.selector, address(batchRelayer)), abi.encode(_balance)
-    );
-
-    // It returns the asset balance of the contract
-    assertEq(batchRelayer.forTest_assetBalance(_asset), _balance);
-  }
-
   function test__deductFeeWhenCalled(uint256 _amount, uint256 _feeBPS) external {
     _feeBPS = bound(_feeBPS, 0, 10_000);
     _amount = bound(_amount, 0, _feeBPS == 0 ? type(uint256).max : type(uint256).max / _feeBPS);
