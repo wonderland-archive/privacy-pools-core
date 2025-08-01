@@ -315,11 +315,10 @@ contract UnitBatchRelayer is Test {
 
     vm.deal(address(privacyPoolNative), _amount);
 
-    // It reverts with BalanceChanged
-    vm.expectRevert(IBatchRelayer.BalanceChanged.selector);
-
+    // It should return successfully
     vm.prank(_relayer);
     batchRelayer.batchRelay(privacyPoolNative, _withdrawal, _proofs);
+    assertEq(address(batchRelayer).balance, _amount);
   }
 
   function test_BatchRelayWhenBatchSizeIsDifferentThanTheNumberOfProofs(uint8 _proofsSize, uint8 _batchSize) external {
