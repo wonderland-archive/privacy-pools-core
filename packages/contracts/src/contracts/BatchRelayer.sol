@@ -35,8 +35,6 @@ contract BatchRelayer is IBatchRelayer {
     if (_data.batchSize != _proofs.length) revert InvalidBatchSize();
     if (_data.relayFeeBPS > MAX_RELAY_FEE_BPS) revert InvalidRelayFeeBPS();
 
-    IERC20 _asset = IERC20(_pool.ASSET());
-
     // Withdraw every proof individually, and temporarily pool funds in this contract
     uint256 _withdrawnAmount;
     for (uint256 i = 0; i < _proofs.length; i++) {
@@ -49,6 +47,7 @@ contract BatchRelayer is IBatchRelayer {
     uint256 _feeAmount = _withdrawnAmount - _amountAfterFees;
 
     // Split the total of pooled funds between recipient and relayer's chosen address
+    IERC20 _asset = IERC20(_pool.ASSET());
     _transfer(_asset, _data.recipient, _amountAfterFees);
     _transfer(_asset, _data.feeRecipient, _feeAmount);
 
