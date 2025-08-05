@@ -305,6 +305,7 @@ contract Entrypoint is AccessControlUpgradeable, UUPSUpgradeable, ReentrancyGuar
   //////////////////////////////////////////////////////////////*/
 
   /// @inheritdoc UUPSUpgradeable
+  // slippy-disable-next-line no-empty-blocks
   function _authorizeUpgrade(address) internal override onlyRole(_OWNER_ROLE) {}
 
   /**

@@ -441,6 +441,7 @@ library PropertiesLibString {
       // We write the string from rightmost digit to leftmost digit.
       // The following is essentially a do-while loop that also handles the zero case.
       // prettier-ignore
+      // slippy-disable-next-line
       for { let temp := value } 1 {} {
         // Move the pointer 1 byte to the left.
         str := sub(str, 1)
