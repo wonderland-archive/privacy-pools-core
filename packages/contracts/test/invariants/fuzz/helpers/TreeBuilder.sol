@@ -6,7 +6,7 @@ import {InternalLeanIMT, LeanIMTData} from 'lean-imt/InternalLeanIMT.sol';
 contract TreeBuilder {
   using InternalLeanIMT for LeanIMTData;
 
-  LeanIMTData _merkleTree;
+  LeanIMTData internal _merkleTree;
 
   function depth() public view returns (uint256 _depth) {
     _depth = _merkleTree.depth;

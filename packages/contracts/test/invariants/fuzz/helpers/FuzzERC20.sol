@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 
 contract FuzzERC20 is ERC20 {
-  address testContract;
+  address internal testContract;
 
   constructor() ERC20('FuzzERC20', 'FuzzERC20') {
     testContract = msg.sender;

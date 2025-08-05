@@ -21,16 +21,16 @@ import {GhostStorage} from './helpers/GhostStorage.sol';
 import {MockVerifier} from './helpers/MockVerifier.sol';
 
 contract Setup is HandlerActors, GhostStorage, FuzzUtils {
-  MockVerifier mockVerifier;
-  IERC20 token;
-  Entrypoint entrypoint;
-  IPrivacyPool nativePool;
-  IPrivacyPool tokenPool;
+  MockVerifier internal mockVerifier;
+  IERC20 internal token;
+  Entrypoint internal entrypoint;
+  IPrivacyPool internal nativePool;
+  IPrivacyPool internal tokenPool;
 
-  uint256 MIN_DEPOSIT = 1 ether;
+  uint256 internal MIN_DEPOSIT = 1 ether;
 
-  address OWNER = makeAddr('OWNER');
-  address POSTMAN = makeAddr('POSTMAN');
+  address internal OWNER = makeAddr('OWNER');
+  address internal POSTMAN = makeAddr('POSTMAN');
 
   constructor() {
     mockVerifier = new MockVerifier();

@@ -9,8 +9,8 @@ import {Iden3PoseidonBytecodes} from '../external/Iden3PoseidonBytecodes.sol';
 /// @notice This test checks the equivalence of the Poseidon hash function implementations used in
 /// PrivacyPool and the IMT library with the Iden3 implementation
 contract PropertiesPoseidon is Iden3PoseidonBytecodes {
-  IPoseidon2 _idenPoseidon2 = IPoseidon2(address(1234));
-  IPoseidon3 _idenPoseidon3 = IPoseidon3(address(5679));
+  IPoseidon2 internal _idenPoseidon2 = IPoseidon2(address(1234));
+  IPoseidon3 internal _idenPoseidon3 = IPoseidon3(address(5679));
 
   constructor() {
     address _t2;
