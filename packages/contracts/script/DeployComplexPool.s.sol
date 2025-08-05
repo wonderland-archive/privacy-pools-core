@@ -1,15 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.28;
 
-import {IERC20} from '@oz/token/ERC20/ERC20.sol';
-import {ERC20} from '@oz/token/ERC20/ERC20.sol';
 import {Script} from 'forge-std/Script.sol';
 import {console} from 'forge-std/console.sol';
 
-import {Constants} from 'contracts/lib/Constants.sol';
 import {DeployLib} from 'contracts/lib/DeployLib.sol';
 
-import {IPrivacyPool} from 'interfaces/IPrivacyPool.sol';
 import {ICreateX} from 'interfaces/external/ICreateX.sol';
 
 import {Entrypoint} from 'contracts/Entrypoint.sol';

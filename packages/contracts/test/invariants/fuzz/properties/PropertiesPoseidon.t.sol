@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {PoseidonT3} from 'poseidon/PoseidonT3.sol';
 import {PoseidonT4} from 'poseidon/PoseidonT4.sol';
 
-import '../external/Iden3PoseidonBytecodes.sol';
+import {Iden3PoseidonBytecodes} from '../external/Iden3PoseidonBytecodes.sol';
 
 /// @notice This test checks the equivalence of the Poseidon hash function implementations used in
 /// PrivacyPool and the IMT library with the Iden3 implementation

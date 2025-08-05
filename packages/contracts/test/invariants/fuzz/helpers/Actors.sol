@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import {vm} from './FuzzUtils.sol';
-import {PropertiesLibString} from './FuzzUtils.sol';
+import {vm, PropertiesLibString} from './FuzzUtils.sol';
 
 contract Actors {
   event LogString(string);
