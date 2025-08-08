@@ -24,20 +24,21 @@ contract BatchRelayer is IBatchRelayer {
   /// @inheritdoc IBatchRelayer
   function batchRelay(
     IPrivacyPool _pool,
-    IPrivacyPool.Withdrawal memory _withdrawal,
-    ProofLib.WithdrawProof[] memory _proofs
+    IPrivacyPool.Withdrawal calldata _withdrawal,
+    ProofLib.WithdrawProof[] calldata _proofs
   ) external {
-    if (_proofs.length == 0) revert EmptyProofs();
+    uint256 _length = _proofs.length;
+    if (_length == 0) revert EmptyProofs();
 
     BatchRelayData memory _data = abi.decode(_withdrawal.data, (BatchRelayData));
 
     // This ensures the relayer is not able to submit an incomplete batch
-    if (_data.batchSize != _proofs.length) revert InvalidBatchSize();
+    if (_data.batchSize != _length) revert InvalidBatchSize();
     if (_data.relayFeeBPS > MAX_RELAY_FEE_BPS) revert InvalidRelayFeeBPS();
 
     // Withdraw every proof individually, and temporarily pool funds in this contract
     uint256 _withdrawnAmount;
-    for (uint256 i = 0; i < _proofs.length; i++) {
+    for (uint256 i = 0; i < _length; i++) {
       _pool.withdraw(_withdrawal, _proofs[i]);
       _withdrawnAmount += _proofs[i].withdrawnValue();
     }
