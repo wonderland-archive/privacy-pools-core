@@ -42,6 +42,8 @@ contract BatchRelayer is IBatchRelayer {
       _withdrawnAmount += _proofs[i].withdrawnValue();
     }
 
+    if (_withdrawnAmount != _data.totalValue) revert InvalidTotalValue();
+
     // Deduct fees
     uint256 _amountAfterFees = _deductFee(_withdrawnAmount, _data.relayFeeBPS);
     uint256 _feeAmount = _withdrawnAmount - _amountAfterFees;

@@ -15,12 +15,14 @@ interface IBatchRelayer {
    * @param feeRecipient The fee receiver. Chosen by the relayer, may be the same address initiating the transaction.
    * @param relayFeeBPS The fee paid to `feeRecipient`, specified in basis points
    * @param batchSize The number of withdrawals expected
+   * @param totalValue The sum of the values of each withdrawal
    */
   struct BatchRelayData {
     address recipient;
     address feeRecipient;
     uint256 relayFeeBPS;
     uint8 batchSize;
+    uint256 totalValue;
   }
 
   /*///////////////////////////////////////////////////////////////
@@ -76,6 +78,11 @@ interface IBatchRelayer {
    * @notice Error thrown when the batch size is different than the number of proofs
    */
   error InvalidBatchSize();
+
+  /**
+   * @notice Error thrown when the total value of the batch is different than the sum of the values of each withdrawal
+   */
+  error InvalidTotalValue();
 
   /*///////////////////////////////////////////////////////////////
                               FUNCTIONS

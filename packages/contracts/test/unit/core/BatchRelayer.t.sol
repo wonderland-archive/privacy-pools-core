@@ -162,7 +162,8 @@ contract UnitBatchRelayer is Test {
           recipient: _happyPath.recipient,
           feeRecipient: _happyPath.feeRecipient,
           relayFeeBPS: _happyPath.relayFeeBPS,
-          batchSize: _happyPath.batchSize
+          batchSize: _happyPath.batchSize,
+          totalValue: _happyPath.totalAmount
         })
       )
     });
@@ -215,7 +216,8 @@ contract UnitBatchRelayer is Test {
           recipient: _happyPath.recipient,
           feeRecipient: _happyPath.feeRecipient,
           relayFeeBPS: _happyPath.relayFeeBPS,
-          batchSize: _happyPath.batchSize
+          batchSize: _happyPath.batchSize,
+          totalValue: _happyPath.totalAmount
         })
       )
     });
@@ -284,7 +286,8 @@ contract UnitBatchRelayer is Test {
             recipient: address(0),
             feeRecipient: address(0),
             relayFeeBPS: _relayFeeBPS,
-            batchSize: 1
+            batchSize: 1,
+            totalValue: 10 ether
           })
         )
       }),
@@ -308,7 +311,8 @@ contract UnitBatchRelayer is Test {
           recipient: address(batchRelayer), // Recipient is the batch relayer to force the balance change
           feeRecipient: _feeRecipient,
           relayFeeBPS: 0,
-          batchSize: 1
+          batchSize: 1,
+          totalValue: _amount
         })
       )
     });
@@ -339,12 +343,46 @@ contract UnitBatchRelayer is Test {
             recipient: address(0),
             feeRecipient: address(0),
             relayFeeBPS: 0,
-            batchSize: _batchSize
+            batchSize: _batchSize,
+            totalValue: 10 ether
           })
         )
       }),
       new ProofLib.WithdrawProof[](_proofsSize)
     );
+  }
+
+  function test_BatchRelayWhenTotalValueIsDifferentThanTheSumOfTheValuesOfEachWithdrawal(
+    address _relayer,
+    address _feeRecipient,
+    uint256 _amount
+  ) external {
+    _assumeFuzzable(_relayer);
+    _assumeFuzzable(_feeRecipient);
+
+    _amount = bound(_amount, 1, type(uint256).max);
+    IPrivacyPool.Withdrawal memory _withdrawal = IPrivacyPool.Withdrawal({
+      processooor: address(batchRelayer),
+      data: abi.encode(
+        IBatchRelayer.BatchRelayData({
+          recipient: address(batchRelayer), // Recipient is the batch relayer to force the balance change
+          feeRecipient: _feeRecipient,
+          relayFeeBPS: 0,
+          batchSize: 1,
+          totalValue: _amount - 1
+        })
+      )
+    });
+    ProofLib.WithdrawProof[] memory _proofs = new ProofLib.WithdrawProof[](1);
+    _proofs[0] = _createFakeProof(_amount);
+
+    vm.deal(address(privacyPoolNative), _amount);
+
+    // It reverts with InvalidTotalValue
+    vm.expectRevert(IBatchRelayer.InvalidTotalValue.selector);
+
+    vm.prank(_relayer);
+    batchRelayer.batchRelay(privacyPoolNative, _withdrawal, _proofs);
   }
 
   function test__transferWhenRecipientIsZero(IERC20 _asset, uint256 _amount) external {
