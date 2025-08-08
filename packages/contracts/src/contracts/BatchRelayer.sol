@@ -3,12 +3,13 @@ pragma solidity 0.8.28;
 
 import {IERC20} from '@oz/interfaces/IERC20.sol';
 import {SafeERC20} from '@oz/token/ERC20/utils/SafeERC20.sol';
+import {ReentrancyGuard} from '@oz/utils/ReentrancyGuard.sol';
 import {Constants} from 'contracts/lib/Constants.sol';
 import {ProofLib} from 'contracts/lib/ProofLib.sol';
 import {IBatchRelayer} from 'interfaces/IBatchRelayer.sol';
 import {IPrivacyPool} from 'interfaces/IPrivacyPool.sol';
 
-contract BatchRelayer is IBatchRelayer {
+contract BatchRelayer is IBatchRelayer, ReentrancyGuard {
   using SafeERC20 for IERC20;
   using ProofLib for ProofLib.WithdrawProof;
 
@@ -26,7 +27,7 @@ contract BatchRelayer is IBatchRelayer {
     IPrivacyPool _pool,
     IPrivacyPool.Withdrawal calldata _withdrawal,
     ProofLib.WithdrawProof[] calldata _proofs
-  ) external {
+  ) external nonReentrant {
     uint256 _length = _proofs.length;
     if (_length == 0) revert EmptyProofs();
 
