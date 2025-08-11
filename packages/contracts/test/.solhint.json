@@ -9,6 +9,6 @@
     "ordering": "off",
     "private-vars-leading-underscore": "off",
     "state-visibility": "off",
-    "style-guide-casing": "off"
+    "style-guide-casing": "off",
   }
 }
